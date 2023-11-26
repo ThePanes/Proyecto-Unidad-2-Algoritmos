@@ -24,8 +24,6 @@ struct NodoJerarquico {
     vector<NodoJerarquico> aprendices;
 };
 
-
-
 struct NodeRanking {
     Guardian guardian;
     int data;
@@ -33,6 +31,10 @@ struct NodeRanking {
     NodeRanking* right;
 };
 
+struct TempGuardian{
+    Guardian guardian;
+    bool maestroEncontrado;
+};
                                     //funcion cargar archivos ciudades y guardianes.
 
 vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
@@ -76,7 +78,7 @@ vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
     }
     return ciudades;
 }
-
+/*
 void intercambiarGuardianes(Guardian& a, Guardian& b){
 
     Guardian temp = a;
@@ -99,7 +101,7 @@ void fun_quicksort(vector<Guardian> &arr, int low, int high){
         int i = low - 1;
 
         for(int j = low; j <=  high - 1; j++){
-            if(arr[j].maestro < pivote.maestro < 0 || (arr[j].maestro == pivote.maestro && arr[j].nombre < pivote.nombre)){
+            if(strcmp(arr[j].maestro, pivote.maestro) < 0 || (strcmp(arr[j].maestro, pivote.maestro) == 0 && strcmp(arr[j].nombre, pivote.nombre) < 0)){
                 i++;
                 intercambiarGuardianes(arr[i], arr[j]);
             }
@@ -111,70 +113,76 @@ void fun_quicksort(vector<Guardian> &arr, int low, int high){
         fun_quicksort(arr,pi + 1 , high);
     }
 }
+*/
+void Buscar_Agregar_Aprendiz(NodoJerarquico& nodo, Guardian& guard, bool& maestroEncontrado){
+    if(strcmp(guard.maestro,nodo.guardian.nombre) == 0 || (strcmp(guard.maestro, "") == 0 && strcmp(guard.nombre, nodo.guardian.nombre) == 0 )){
+        NodoJerarquico nodoAprendiz;
+        nodoAprendiz.guardian = guard;
+        nodo.aprendices.push_back(nodoAprendiz);
+        maestroEncontrado = true;
+    }
+    for(auto& aprendiz : nodo.aprendices){
+        Buscar_Agregar_Aprendiz(aprendiz,guard,maestroEncontrado);
+        if(maestroEncontrado){
+            break;
+        }
+    }
 
+    if(!maestroEncontrado && ((strcmp(guard.maestro, nodo.guardian.nombre) == 0) ||  (strcmp(guard.maestro, "") == 0 &&  strcmp(guard.nombre, nodo.guardian.nombre) == 0))){
+        NodoJerarquico nodoAprendiz;
+        nodoAprendiz.guardian = guard;
+        nodo.aprendices.push_back(nodoAprendiz);
+        maestroEncontrado = true;
+    }
+}
 vector<NodoJerarquico> cargarGuardianes(char archivoGuardianes[]) {
-
     vector<NodoJerarquico> jerarquia;
     vector<Guardian> guardianes;
-
     ifstream file(archivoGuardianes);
     char line[256];
 
+    vector<TempGuardian> tempGuardianes;
+
     while (file.getline(line, sizeof(line))) {
-        Guardian guardian;
+
+        TempGuardian temp_Guardian;
         char* token = strtok(line,",");
-        strcpy(guardian.nombre, token);
+        strcpy(temp_Guardian.guardian.nombre, token);
 
         token = strtok(nullptr,",");
-        guardian.nivelPoder = atoi(token);
+        temp_Guardian.guardian.nivelPoder = atoi(token);
 
         token = strtok(nullptr, ",");
-        strcpy(guardian.maestro, token);
+        strcpy(temp_Guardian.guardian.maestro, token);
 
         token = strtok(nullptr, ",");
-        strcpy(guardian.ciudad, token);
+        strcpy(temp_Guardian.guardian.ciudad, token);
 
-        guardianes.push_back(guardian);
+        temp_Guardian.maestroEncontrado = false;
+
+        tempGuardianes.push_back(temp_Guardian);
     }
-                                    //Se tuvo que recurrir a algoritmo quicksort para ordenar el archivo de los guardianes.
 
-    int low = 0;
-    int high = guardianes.size() - 1;
+    for(TempGuardian& temp_guardian : tempGuardianes){
+        guardianes.push_back(temp_guardian.guardian);
+    }
 
-    fun_quicksort(guardianes, low, high);
-
-
-                                    //A partir de aqui se construye la jerarquia de los guardianes y maestros.
-    for(auto& guard : guardianes){
-            NodoJerarquico nuevoNodo;
-            nuevoNodo.guardian = guard;
+    for(TempGuardian& temp_Guardian : tempGuardianes){
+        if(strcmp(temp_Guardian.guardian.maestro, "") != 0){
             bool maestroEncontrado = false;
-            for(auto& nodo : jerarquia){
-                if(strcmp(nodo.guardian.nombre, guard.maestro) == 0){
-                    NodoJerarquico nodoAprendiz;
-                    nodoAprendiz.guardian = guard;
-                    nodo.aprendices.push_back(nodoAprendiz);
-                    maestroEncontrado = true;
+            for(NodoJerarquico& nodo : jerarquia){
+                Buscar_Agregar_Aprendiz(nodo,temp_Guardian.guardian, maestroEncontrado);
+                if(maestroEncontrado){
                     break;
                 }
-
-                for(auto& aprendiz : nodo.aprendices){
-                    if(strcmp(aprendiz.guardian.nombre,guard.maestro) == 0){
-                        NodoJerarquico nodoAprendiz;
-                        nodoAprendiz.guardian = guard;
-                        aprendiz.aprendices.push_back(nodoAprendiz);
-                        maestroEncontrado  = true;
-                        break;
-                    }
-                }
             }
-
-            if(!maestroEncontrado && strlen(guard.maestro) > 0){
-                cout << "Maestro no encontrado para: " << guard.nombre << " Se agregara como independiente." <<endl;
-                jerarquia.push_back(nuevoNodo);
-            }else if(strlen(guard.maestro) == 0){
+            if(!maestroEncontrado){
+                cout << "Maestro no encontrado para: " << temp_Guardian.guardian.nombre <<" Se agregara como independiente" << endl;
+                NodoJerarquico nuevoNodo;
+                nuevoNodo.guardian = temp_Guardian.guardian;
                 jerarquia.push_back(nuevoNodo);
             }
+        }
     }
     return jerarquia;
 }
@@ -232,7 +240,7 @@ void imprimirJerarquia(NodoJerarquico& nodo, int nivel = 0) {
     }
 
     if(nivel > 0){
-        cout << "aprendiz:";
+        cout << " *Aprendiz: ";
     }
 
     cout << nodo.guardian.nombre << " Nivel de Poder: " << nodo.guardian.nivelPoder << " Ciudad Origen: " << nodo.guardian.ciudad<< " Maestro: " << nodo.guardian.maestro<<endl;
