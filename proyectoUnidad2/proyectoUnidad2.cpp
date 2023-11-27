@@ -26,15 +26,57 @@ struct NodoJerarquico {
 
 struct NodeRanking {
     Guardian guardian;
-    int data;
     NodeRanking* left;
     NodeRanking* right;
+    int puntos;
 };
+
+NodeRanking* inicialRanking(){
+    return nullptr;
+}
 
 struct TempGuardian{
     Guardian guardian;
     bool maestroEncontrado;
 };
+
+            //lista de candidatos a guardianes del reino / ranking de candidatos en base a arbol.
+
+NodeRanking* createNode(Guardian& guardian) {
+    NodeRanking* newNode = new NodeRanking;
+    newNode->guardian = guardian;
+    newNode->left = nullptr;
+    newNode->right = nullptr;
+    newNode->puntos = guardian.nivelPoder;
+    return newNode;
+}
+NodeRanking* insertar(NodeRanking* root, Guardian& guardian) {
+    if (root == nullptr) {
+        return createNode(guardian);
+    }
+    if (strcmp(guardian.nombre, root->guardian.nombre) < 0) {
+        root->left = insertar(root->left, guardian);
+    }else if(strcmp(guardian.nombre, root->guardian.nombre) > 0){
+        root->right = insertar(root->right, guardian);
+    }else {
+        root->puntos = guardian.nivelPoder;
+    }
+    return root;
+}
+
+void cargarGuardianesRecursivo(NodeRanking*& rankingRoot, NodoJerarquico& nodo){
+    rankingRoot = insertar(rankingRoot, nodo.guardian);
+    for(auto& aprendiz : nodo.aprendices){
+        cargarGuardianesRecursivo(rankingRoot,aprendiz);
+    }
+}
+
+void cargarGuardianesArboles(vector<NodoJerarquico>&jerarquia, NodeRanking*& rankingRoot){
+    for(auto& nodo : jerarquia){
+        cargarGuardianesRecursivo(rankingRoot,nodo);
+    }
+}
+                                    //temino funcion.
                                     //funcion cargar archivos ciudades y guardianes.
 
 vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
@@ -78,42 +120,7 @@ vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
     }
     return ciudades;
 }
-/*
-void intercambiarGuardianes(Guardian& a, Guardian& b){
 
-    Guardian temp = a;
-
-    strcpy(a.nombre,b.nombre);
-    a.nivelPoder = b.nivelPoder;
-    strcpy(a.maestro,b.maestro);
-    strcpy(a.ciudad,b.ciudad);
-
-    strcpy(b.nombre,temp.nombre);
-    b.nivelPoder = temp.nivelPoder;
-    strcpy(b.maestro,temp.maestro);
-    strcpy(b.ciudad,temp.ciudad);
-}
-
-void fun_quicksort(vector<Guardian> &arr, int low, int high){
-
-    if(low < high){
-        Guardian pivote = arr[high];
-        int i = low - 1;
-
-        for(int j = low; j <=  high - 1; j++){
-            if(strcmp(arr[j].maestro, pivote.maestro) < 0 || (strcmp(arr[j].maestro, pivote.maestro) == 0 && strcmp(arr[j].nombre, pivote.nombre) < 0)){
-                i++;
-                intercambiarGuardianes(arr[i], arr[j]);
-            }
-        }
-        intercambiarGuardianes(arr[ i + 1], arr[high]);
-        int pi = i + 1;
-
-        fun_quicksort(arr,low,pi - 1);
-        fun_quicksort(arr,pi + 1 , high);
-    }
-}
-*/
 void Buscar_Agregar_Aprendiz(NodoJerarquico& nodo, Guardian& guard, bool& maestroEncontrado){
     if(strcmp(guard.maestro,nodo.guardian.nombre) == 0 || (strcmp(guard.maestro, "") == 0 && strcmp(guard.nombre, nodo.guardian.nombre) == 0 )){
         NodoJerarquico nodoAprendiz;
@@ -135,6 +142,7 @@ void Buscar_Agregar_Aprendiz(NodoJerarquico& nodo, Guardian& guard, bool& maestr
         maestroEncontrado = true;
     }
 }
+
 vector<NodoJerarquico> cargarGuardianes(char archivoGuardianes[]) {
     vector<NodoJerarquico> jerarquia;
     vector<Guardian> guardianes;
@@ -144,7 +152,6 @@ vector<NodoJerarquico> cargarGuardianes(char archivoGuardianes[]) {
     vector<TempGuardian> tempGuardianes;
 
     while (file.getline(line, sizeof(line))) {
-
         TempGuardian temp_Guardian;
         char* token = strtok(line,",");
         strcpy(temp_Guardian.guardian.nombre, token);
@@ -187,6 +194,44 @@ vector<NodoJerarquico> cargarGuardianes(char archivoGuardianes[]) {
     return jerarquia;
 }
                     //termino funciones de carga de ciudades y guardianes.
+/*
+void intercambiarGuardianes(Guardian& a, Guardian& b){
+
+    Guardian temp = a;
+
+    strcpy(a.nombre,b.nombre);
+    a.nivelPoder = b.nivelPoder;
+    strcpy(a.maestro,b.maestro);
+    strcpy(a.ciudad,b.ciudad);
+
+    strcpy(b.nombre,temp.nombre);
+    b.nivelPoder = temp.nivelPoder;
+    strcpy(b.maestro,temp.maestro);
+    strcpy(b.ciudad,temp.ciudad);
+}
+
+void fun_quicksort(vector<Guardian> &arr, int low, int high){
+
+    if(low < high){
+        Guardian pivote = arr[high];
+        int i = low - 1;
+
+        for(int j = low; j <=  high - 1; j++){
+            if(strcmp(arr[j].maestro, pivote.maestro) < 0 || (strcmp(arr[j].maestro, pivote.maestro) == 0 && strcmp(arr[j].nombre, pivote.nombre) < 0)){
+                i++;
+                intercambiarGuardianes(arr[i], arr[j]);
+            }
+        }
+        intercambiarGuardianes(arr[ i + 1], arr[high]);
+        int pi = i + 1;
+
+        fun_quicksort(arr,low,pi - 1);
+        fun_quicksort(arr,pi + 1 , high);
+    }
+}
+*/
+
+
 
                     //arbol general para jerarquia de guardianes.
 
@@ -215,6 +260,7 @@ NodoJerarquico* agregar_guardian_Jerarquia(NodoJerarquico* root, Guardian &nuevo
     }
 }
             //termino arbol general jerarquia guardianes.
+
 
 
 
@@ -252,39 +298,53 @@ void imprimirJerarquia(NodoJerarquico& nodo, int nivel = 0) {
 
 
 
-NodeRanking* createNode(int data) {
-    NodeRanking* newNode = new NodeRanking;
-    newNode->data = data;
-    newNode->left = NULL;
-    newNode->right = NULL;
-    return newNode;
+/*NodeRanking* buscarGuardianRanking(NodeRanking* root, Guardian& guardian){
+    if(root == nullptr || strcmp(root->guardian.nombre, guardian.nombre) == 0){
+        return root;
+    }
+    cout << "Buscando en el nodo " << root->guardian.nombre << endl;
+    if(strcmp(guardian.nombre, root->guardian.nombre) < 0){
+        return buscarGuardianRanking(root->left,guardian);
+    }else{
+        return buscarGuardianRanking(root->right,guardian);
+    }
 }
-
-NodeRanking* insertar(NodeRanking* root, int data) {
-
-    if (root == NULL) {
-        return createNode(data);
-    }
-
-    if (data < root->data) {
-        root->left = insertar(root->left, data);
-    }
-    else {
-        root->right = insertar(root->right, data);
-    }
-
-    return root;
-}
-
+*/
+            //imprimiendo arbol de ranking con el metodo inorder, filtrando solo por aquellos guardianes que cumplan como candidatos
 void inorder(NodeRanking* root) {
-    if (root == NULL) {
+    if (root == nullptr) {
         return;
     }
     inorder(root->left);
-    cout << root->data << " ";
-
+    if(root->guardian.nivelPoder >= 90 && root->guardian.nivelPoder <= 99){
+        cout << "Guardian seleccionado como candidato: "<< root->guardian.nombre  << " Nivel de Poder: "<<  root->guardian.nivelPoder << " " << endl;
+    }
     inorder(root->right);
 }
+
+/*void ver_lista_candidatos(vector<NodoJerarquico>& guardianes, NodeRanking*& rankingRoot){
+
+    cout << "Lista de candidatos:" << endl;
+
+    inorder(rankingRoot);
+
+    for(auto& nodo: guardianes){
+        if(nodo.guardian.nivelPoder >= 90 && nodo.guardian.nivelPoder <= 99){
+            cout << "Seleccionado: " << nodo.guardian.nombre << " Nivel de Poder: " << nodo.guardian.nivelPoder;
+
+            NodeRanking* puntajeGuardian = buscarGuardianRanking(rankingRoot, nodo.guardian);
+
+            if(puntajeGuardian){
+                cout << "Puntos: " << puntajeGuardian->puntos;
+            }
+            cout << endl;
+        }
+    }
+    cout << "Termino la funcion Lista Candidatos" << endl;
+}
+*/
+
+
 
 /*
 
@@ -312,10 +372,10 @@ NodeRanking* deleteNode(NodeRanking* root, int key) {
     if (root == NULL) {
         return root;
     }
-    if (key < root->data) {
+    if (key < root->puntos) {
         root->left = deleteNode(root->left, key);
     }
-    else if (key > root->data) {
+    else if (key > root->puntos) {
         root->right = deleteNode(root->right, key);
     }
     else {
@@ -333,8 +393,8 @@ NodeRanking* deleteNode(NodeRanking* root, int key) {
         while (temp->left != NULL) {
             temp = temp->left;
         }
-        root->data = temp->data;
-        root->right = deleteNode(root->right, temp->data);
+        root->puntos = temp->puntos;
+        root->right = deleteNode(root->right, temp->puntos);
     }
     return root;
 }
@@ -343,18 +403,54 @@ int main() {
 
     char ciudadestexto[50] = "cities.conf";
     char guardianestexto[50] = "guardians.conf";
+    NodeRanking* rankingRoot = inicialRanking();
 
     vector<CiudadGrafo> ciudades = cargarCiudades(ciudadestexto);
     vector<NodoJerarquico> guardianes = cargarGuardianes(guardianestexto);
 
-    imprimirGrafoCiudades(ciudades);
+    cargarGuardianesArboles(guardianes,rankingRoot);
+    int opcion;
 
-    cout << "A partir de aqui se imprimiran los guardianes:" << endl;
-    for(auto& guardian: guardianes){
-        imprimirJerarquia(guardian);
-        cout << endl;
-    }
-    cout << "termino funcion";
+    do{
+        cout << "Menu De The Guardians Battle" << endl;
+        cout << "1. Ver la lista de candidatos." << endl;
+        cout << "2. Ver al guardian." << endl;
+        cout << "3. Conocer el reino." << endl;
+        cout << "4. Presenciar una Batalla." << endl;
+        cout << "5. Imprimir grafo de todas las ciudades." << endl;
+        cout << "6. Imprimir lista de todos los guardianes en jerarquia de maestros." << endl;
+        cout << "7. Salir" << endl;
+        cout << "Eliga una opcion:" << endl;
+        cin >> opcion;
+        switch(opcion){
+            case 1:
+                    cout << "Guardianes elegidos como posibles candidatos a Guardianes del Reino:" << endl;
+                    inorder(rankingRoot);
+                    //ver_lista_candidatos(guardianes,rankingRoot);
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+                imprimirGrafoCiudades(ciudades);
+                break;
+            case 6:
+                for(auto& guardian: guardianes){
+                    imprimirJerarquia(guardian);
+                    cout << endl;
+                }
+                break;
+            case 7:
+                cout << "Termino de Funcion." << endl;
+                break;
+            default:
+                cout << "Opcion Invalida, reintente." << endl;
+                break;
+        }
+    }while(opcion !=7 );
 
     return 0;
 }
