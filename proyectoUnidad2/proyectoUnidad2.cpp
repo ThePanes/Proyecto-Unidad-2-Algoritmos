@@ -30,7 +30,6 @@ struct NodeRanking {
     Guardian guardian;
     NodeRanking* left;
     NodeRanking* right;
-    vector<Guardian> empates;
 };
 
 NodeRanking* inicialRanking(){
@@ -54,20 +53,12 @@ NodeRanking* insertar(NodeRanking* root, Guardian& guardian) {
     if (root == nullptr) {
         return createNode(guardian);
     }
-    /*
-    if (strcmp(guardian.nombre, root->guardian.nombre) < 0) {
-        root->left = insertar(root->left, guardian);
-    }else if(strcmp(guardian.nombre, root->guardian.nombre) > 0){
-        root->right = insertar(root->right, guardian);
-    }else {
-        root->puntos = guardian.nivelPoder;
-    }*/
     if(guardian.nivelPoder < root->guardian.nivelPoder){
         root->left = insertar(root->left, guardian);
     }else if(guardian.nivelPoder > root->guardian.nivelPoder){
         root->right = insertar(root->right, guardian);
     }else{
-        root->empates.push_back(guardian);
+        root->right = insertar(root->right, guardian);
     }
     return root;
 }
@@ -218,19 +209,17 @@ void intercambiarGuardianes(Guardian& a, Guardian& b){
     strcpy(b.ciudad,temp.ciudad);
 }
 */
-
-
 void imprimirGrafoCiudades(vector<CiudadGrafo> &ciudades) {
-
+    int contador = 1;
     cout << "Grafo de ciudades:" << endl;
 
     for (auto& ciudad : ciudades) {
-        cout << "Ciudad: " << ciudad.nombre << " Conexiones:";
+        cout << contador << ". Ciudad: " << ciudad.nombre << " Conexiones:";
         for (auto& conexion : ciudad.coneccionCiudad) {
-
             cout << conexion << " ";
         }
         cout << endl;
+        contador++;
     }
     cout << endl;
 
@@ -251,9 +240,6 @@ void imprimirJerarquia(NodoJerarquico& nodo, int nivel = 0) {
         imprimirJerarquia(aprendiz, nivel + 1);
     }
 }
-
-
-
 /*NodeRanking* buscarGuardianRanking(NodeRanking* root, Guardian& guardian){
     if(root == nullptr || strcmp(root->guardian.nombre, guardian.nombre) == 0){
         return root;
@@ -293,19 +279,10 @@ void inOrderRanking(NodeRanking* root, int& contador){
     }
     inOrderRanking(root->left,contador);
     bool esCandidato = root->guardian.nivelPoder < 90;
-    bool CandidatoEmpates;
-    for(Guardian& empateGuardian : root->empates){
-      CandidatoEmpates   = empateGuardian.nivelPoder < 90;
-    }
-    if(esCandidato || CandidatoEmpates){
-        cout << contador <<". Guardian Para Batallar Como candidato:" << root->guardian.nombre << " Nivel de Poder: " << root->guardian.nivelPoder<<  endl;
+    if(esCandidato){
+        cout << contador <<". Guardian Para Batallar Como candidato:" << root->guardian.nombre << endl;
 
         contador++;
-
-        for(Guardian& empateGuardian : root->empates){
-          cout << contador << ". Guardian Para Batallar Como candidato:" << empateGuardian.nombre << " Nivel de Poder: " << empateGuardian.nivelPoder<<  endl;
-            contador++;
-        }
     }
     inOrderRanking(root->right,contador);
 }
@@ -328,10 +305,25 @@ void buscarCiudadGuardian(NodoJerarquico& nodo, char* nombreGuardian, CiudadGraf
         }
     }
 }
-bool buscarGuardianJerarquia(){
 
+Guardian* buscarGuardianNumero(NodeRanking* root, int& contador, int& eleccion){
 
+    if (root == nullptr) {
+        return nullptr;
+    }
+    Guardian* resultado = nullptr;
+    resultado  = buscarGuardianNumero(root->left,contador,eleccion);
+
+    if(resultado != nullptr){
+        return resultado;
+    }
+    contador ++;
+    if(contador == eleccion){
+        return &root->guardian;
+    }
+    return buscarGuardianNumero(root->right,contador,eleccion);
 }
+
 int pelea(Guardian& elegido, Guardian& contrincante){
     if(elegido.nivelPoder < contrincante.nivelPoder){
         elegido.nivelPoder -=1;
@@ -339,6 +331,65 @@ int pelea(Guardian& elegido, Guardian& contrincante){
     }else if(elegido.nivelPoder > contrincante.nivelPoder){
         elegido.nivelPoder += 1;
         return 2;
+    }
+}
+
+CiudadGrafo* buscarCiudad(vector<CiudadGrafo>& ciudades, string& nombreCiudad){
+    for(CiudadGrafo& ciudad: ciudades){
+        if(ciudad.nombre == nombreCiudad){
+            return &ciudad;
+        }
+    }
+    return nullptr;
+}
+
+bool existeConexion(CiudadGrafo& ciudad, string& otraCiudad){
+    for(string& conexion : ciudad.coneccionCiudad){
+        if(conexion == otraCiudad){
+            return true;
+        }
+    }
+    return false;
+}
+
+void agregarConexion(vector<CiudadGrafo>& ciudades, string& ciudadA, string& ciudadB){
+
+    CiudadGrafo* ciudad_A = buscarCiudad(ciudades,ciudadA);
+    CiudadGrafo* ciudad_B = buscarCiudad(ciudades,ciudadB);
+
+    if(ciudad_A && ciudad_B){
+        if(!existeConexion(*ciudad_A,ciudadB)){
+            ciudad_A->coneccionCiudad.push_back(ciudadB);
+            cout << "Conexion agregada entre " << ciudadA << " y " << ciudadB << endl;
+        }else{
+            cout << "Ya existe conexion entre " << ciudadA << " y " << ciudadB << endl;
+        }
+    }else{
+        cout << "Una de las ciudades no existe o no se encontro, no se pudo agregar conexion." << endl;
+    }
+}
+
+void eliminarConexion(vector<CiudadGrafo>& ciudades, string& ciudadA, string& ciudadB){
+    CiudadGrafo* ciudad_A = buscarCiudad(ciudades,ciudadA);
+    CiudadGrafo* ciudad_B = buscarCiudad(ciudades,ciudadB);
+    if(ciudad_A && ciudad_B){
+        bool conexionEncontrada = false;
+        for(int i = 0; i< ciudad_A->coneccionCiudad.size(); i++){
+            if(ciudad_A->coneccionCiudad[i] == ciudadB){
+                for(int j = i; j < ciudad_A->coneccionCiudad.size() - 1; j++){
+                    ciudad_A->coneccionCiudad[j]  =ciudad_A->coneccionCiudad[j + 1];
+                }
+                ciudad_A->coneccionCiudad.pop_back();
+                conexionEncontrada = true;
+                cout << "Conexion Eliminada entre " << ciudadA << " y " << ciudadB <<endl;
+                break;
+            }
+        }
+        if(!conexionEncontrada){
+            cout << "No existe conexion entre " << ciudadA << " y " << ciudadB << endl;
+        }
+    }else{
+        cout << "Una de las ciudades no existe o no se encontro, no se pudo agregar conexion." << endl;
     }
 }
 
@@ -402,7 +453,13 @@ int main() {
     NodeRanking* rankingRoot = inicialRanking();
 
     int contador = 1;
+    int contador2 = 0;
     int eleccion;
+    int eleccionReinos;
+    Guardian* guardianElegido  = nullptr;
+    Guardian* eleccionVerDatos = nullptr;
+
+    int op2 , op3 ,op4 , op5;
 
     vector<CiudadGrafo> ciudades = cargarCiudades(ciudadestexto);
     vector<NodoJerarquico> guardianes = cargarGuardianes(guardianestexto);
@@ -417,9 +474,8 @@ int main() {
         cout << "2. Ver al guardian." << endl;
         cout << "3. Conocer el reino." << endl;
         cout << "4. Presenciar una Batalla." << endl;
-        cout << "5. Imprimir grafo de todas las ciudades." << endl;
-        cout << "6. Imprimir lista de todos los guardianes en jerarquia de maestros." << endl;
-        cout << "7. Salir" << endl;
+        cout << "5. Imprimir lista de todos los guardianes en jerarquia de maestros." << endl;
+        cout << "6. Salir" << endl;
         cout << "Eliga una opcion:" << endl;
         cin >> opcion;
         switch(opcion){
@@ -428,34 +484,130 @@ int main() {
                         ver_lista_candidatos(rankingRoot,guardianesActuales);
                 break;
             case 2:
+                    contador = 1;
+                    contador2 = 0;
+                    cout << "Seleccione un guardian para la ver los datos:" << endl;
+                        inOrderRanking(rankingRoot,contador);
+                    cout << "Ingrese el numero del guardian a seleccionar:" << endl;
+                        cin >> eleccion;
+                    eleccionVerDatos = buscarGuardianNumero(rankingRoot,contador2,eleccion);
+
+                    if(eleccionVerDatos != nullptr){
+                        cout << "Elegiste al guardian: " << eleccionVerDatos->nombre << endl;
+                        cout << "Ciudad del Guardian: " << eleccionVerDatos->ciudad <<endl;
+                        cout << "Maestro del Guardian: " << eleccionVerDatos->maestro << endl;
+                        cout << "Nivel de Poder del Guardian: " <<eleccionVerDatos->nivelPoder << endl;
+
+                    }else{
+                        cout << "Seleccion Invalida, reintente." << endl;
+                    }
+
                 break;
             case 3:
+                    do{
+                        cout << "Menu de Conocer el Reino:" << endl;
+                        cout << "1. Ver el reino"<<endl;
+                        cout << "2. Agregar camino entre ciudades" << endl;
+                        cout << "3. Eliminar camino entre ciudades" << endl;
+                        cout << "4. Salir." <<endl;
+                        cout << "Seleccione una opcion:" << endl;
+                        cin >> eleccionReinos;
+                        switch(eleccionReinos){
+                            case 1:
+                                cout << "Reino Completo, aqui estan todas las ciudades y sus conexiones:" << endl;
+                                imprimirGrafoCiudades(ciudades);
+                                break;
+                            case 2:
+                                cout << "Elija la ciudad que quiere agregarle una conexion con otra ciudad:" << endl;
+                                cout << "Primero elija la ciudad de origen:" << endl;
+                                imprimirGrafoCiudades(ciudades);
+                                cout << "Eleccion:" << endl;
+                                cin >> op2;
+
+                                cout << "Ahora, elija la ciudad de destino:" << endl;
+                                imprimirGrafoCiudades(ciudades);
+                                cout << "Eleccion:" << endl;
+                                cin >> op3;
+
+                                if(op2 >= 1 && op2 <=ciudades.size() && op3 >= 1 && op3 <=ciudades.size()){
+                                    string ciudadA = ciudades[op2 - 1].nombre;
+                                    string ciudadB = ciudades[op3 - 1].nombre;
+                                        cout << "Ahora realizaremos la conexion entre ambos ciudades:" <<endl;
+                                        agregarConexion(ciudades,ciudadA,ciudadB);
+                                }else{
+                                    cout << "Seleccion Invalida. Reintente." << endl;
+                                }
+                                break;
+                            case 3:
+                                cout << "Elija la ciudad que quiere eliminarle una conexion con otra ciudad:" << endl;
+                                cout << "Primero elija la ciudad de origen:" << endl;
+                                imprimirGrafoCiudades(ciudades);
+                                cout << "Eleccion:" << endl;
+                                cin >> op4;
+                                cout << "Ahora, elija la ciudad de destino:" << endl;
+                                imprimirGrafoCiudades(ciudades);
+                                cout << "Eleccion:" << endl;
+                                cin >> op5;
+
+                                if(op4 >= 1 && op4 <=ciudades.size() && op5 >= 1 && op5 <=ciudades.size()){
+                                    string ciudadA = ciudades[op4 - 1].nombre;
+                                    string ciudadB = ciudades[op5 - 1].nombre;
+                                    cout << "Ahora realizaremos la eliminacion de conexion entre ambos ciudades:" <<endl;
+                                    eliminarConexion(ciudades,ciudadA,ciudadB);
+                                }else{
+                                    cout << "Seleccion Invalida. Reintente." << endl;
+                                }
+                                break;
+                            case 4:
+                                cout << "Volviendo Al Menu Principal" <<endl;
+                                break;
+                            default:
+                                cout << "Opcion Invalida, reintente." << endl;
+                                break;
+                        }
+
+                    }while(eleccionReinos != 4);
+
+
                 break;
             case 4:
-                cout << "Seleccione un guardian para la batalla:" << endl;
-                    inOrderRanking(rankingRoot,contador);
+                if(guardianElegido == nullptr){
+                    contador = 1;
+                    contador2 = 0;
+                    cout << "Seleccione un guardian para la batalla:" << endl;
+                        inOrderRanking(rankingRoot,contador);
+                    cout << "Ingrese el numero del guardian a seleccionar:" << endl;
+                        cin >> eleccion;
+                    guardianElegido = buscarGuardianNumero(rankingRoot,contador2,eleccion);
 
-                cout << "Ingrese el numero del guardian a seleccionar:" << endl;
-                    cin >> eleccion;
+                    if(guardianElegido != nullptr){
+                        cout << "Elegiste al guardian: " << guardianElegido->nombre <<" Para la Batalla." << endl;
+
+                        //falta seguir impleamentando logica para batalla.
+
+
+                    }else{
+                        cout << "Seleccion Invalida, reintente." << endl;
+                    }
+                }else{
+                    cout << "Ya elegiste un guardian, deseas elegir otro distinto?" << endl;
+                }
 
                 break;
             case 5:
-                imprimirGrafoCiudades(ciudades);
-                break;
-            case 6:
                 for(auto& guardian: guardianes){
                     imprimirJerarquia(guardian);
                     cout << endl;
                 }
                 break;
-            case 7:
+            case 6:
                 cout << "Termino de Funcion." << endl;
                 break;
             default:
                 cout << "Opcion Invalida, reintente." << endl;
                 break;
         }
-    }while(opcion !=7 );
+    }while(opcion !=6 );
 
     return 0;
 }
