@@ -79,9 +79,9 @@ void cargarGuardianesArboles(vector<NodoJerarquico>&jerarquia, NodeRanking*& ran
                                     //temino funciones.
 
 CiudadGrafo* buscarCiudad(vector<CiudadGrafo>& ciudades, string& nombreCiudad){
-    for(CiudadGrafo& ciudad: ciudades){
-        string name(ciudad.nombre);
-        if(name == nombreCiudad){
+    for(auto& ciudad: ciudades){
+        //string name(ciudad);
+        if(ciudad.nombre == nombreCiudad){
             return &ciudad;
         }
     }
@@ -103,11 +103,18 @@ void agregarConexion(vector<CiudadGrafo>& ciudades, string& ciudadA, string& ciu
     CiudadGrafo* ciudad_B = buscarCiudad(ciudades,ciudadB);
 
     if(ciudad_A && ciudad_B){
-        if(!existeConexion(*ciudad_A,ciudadB)){
+        bool conexionExiste = false;
+        for(auto& conexion : ciudad_A->coneccionCiudad){
+            if(conexion == ciudadB){
+                conexionExiste = true;
+                break;
+            }
+        }
+
+        if(!conexionExiste){
             ciudad_A->coneccionCiudad.push_back(ciudadB);
-            cout << "Conexion agregada entre " << ciudadA << " y " << ciudadB << endl;
         }else{
-            cout << "Ya existe conexion entre " << ciudadA << " y " << ciudadB << endl;
+            cout << "Ya existe conexion entre estas ciudades." << endl;
         }
     }else{
         cout << "Una de las ciudades no existe o no se encontro, no se pudo agregar conexion." << endl;
@@ -149,33 +156,44 @@ vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
         char*  nombre_ciudad = strtok(line, ",");
         strcpy(ciudad.nombre,nombre_ciudad);
         bool ciudadExistente = false;
+        bool ciudadConexionExiste = false;
         for(auto& c : ciudades){
             if(strcmp(c.nombre, ciudad.nombre) == 0){
                 ciudadExistente = true;
                 break;
             }
         }
-        char* ciudad_coneccion = strtok(nullptr, ",");
-        while (ciudad_coneccion != nullptr) {
-
-            if(!ciudadExistente){
-                ciudad.coneccionCiudad.push_back(ciudad_coneccion);
-            }else{
-
-                for(auto& c : ciudades){
-                    if(strcmp(c.nombre,ciudad.nombre) == 0){
-                        c.coneccionCiudad.push_back(ciudad_coneccion);
-                        break;
-                    }
-                }
-            }
-            ciudad_coneccion = strtok(nullptr,",");
-        }
         if(!ciudadExistente){
             ciudades.push_back(ciudad);
         }
-    }
+        char* ciudad_coneccion = strtok(nullptr, ",");
+        while (ciudad_coneccion != nullptr) {
+            if(ciudadExistente){
+                for(auto& c : ciudades){
+                    if(strcmp(c.nombre, ciudad.nombre) == 0){
+                            //ahora busqueda vecinos vector string ciudad.
+                        for(auto& v : c.coneccionCiudad){
+                            string vnombre(v);
+                            if(vnombre == ciudad_coneccion){
+                                ciudadConexionExiste = true;
+                        break;
+                            }
+                        }
+                    }
+                }
+            }
 
+                //si no existe la ciudad, se agrega.
+            if(!ciudadConexionExiste){
+                ciudades.back().coneccionCiudad.push_back(ciudad_coneccion);
+            }else{
+                ciudades.back().coneccionCiudad.push_back(ciudad_coneccion);
+            }
+            //actualizamos el nombre de la ciudad.
+            ciudad_coneccion = strtok(nullptr,",");
+        }
+
+    }
     return ciudades;
 }
 
