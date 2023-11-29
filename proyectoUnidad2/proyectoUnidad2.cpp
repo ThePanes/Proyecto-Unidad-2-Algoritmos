@@ -75,7 +75,68 @@ void cargarGuardianesArboles(vector<NodoJerarquico>&jerarquia, NodeRanking*& ran
         cargarGuardianesRecursivo(rankingRoot,nodo);
     }
 }
+
                                     //temino funciones.
+
+CiudadGrafo* buscarCiudad(vector<CiudadGrafo>& ciudades, string& nombreCiudad){
+    for(CiudadGrafo& ciudad: ciudades){
+        string name(ciudad.nombre);
+        if(name == nombreCiudad){
+            return &ciudad;
+        }
+    }
+    return nullptr;
+}
+
+bool existeConexion(CiudadGrafo& ciudad, string& otraCiudad){
+    for(string& conexion : ciudad.coneccionCiudad){
+        if(conexion == otraCiudad){
+            return true;
+        }
+    }
+    return false;
+}
+
+void agregarConexion(vector<CiudadGrafo>& ciudades, string& ciudadA, string& ciudadB){
+
+    CiudadGrafo* ciudad_A = buscarCiudad(ciudades,ciudadA);
+    CiudadGrafo* ciudad_B = buscarCiudad(ciudades,ciudadB);
+
+    if(ciudad_A && ciudad_B){
+        if(!existeConexion(*ciudad_A,ciudadB)){
+            ciudad_A->coneccionCiudad.push_back(ciudadB);
+            cout << "Conexion agregada entre " << ciudadA << " y " << ciudadB << endl;
+        }else{
+            cout << "Ya existe conexion entre " << ciudadA << " y " << ciudadB << endl;
+        }
+    }else{
+        cout << "Una de las ciudades no existe o no se encontro, no se pudo agregar conexion." << endl;
+    }
+}
+
+void eliminarConexion(vector<CiudadGrafo>& ciudades, string& ciudadA, string& ciudadB){
+    CiudadGrafo* ciudad_A = buscarCiudad(ciudades,ciudadA);
+    CiudadGrafo* ciudad_B = buscarCiudad(ciudades,ciudadB);
+    if(ciudad_A && ciudad_B){
+        bool conexionEncontrada = false;
+        for(int i = 0; i< ciudad_A->coneccionCiudad.size(); i++){
+            if(ciudad_A->coneccionCiudad[i] == ciudadB){
+                for(int j = i; j < ciudad_A->coneccionCiudad.size() - 1; j++){
+                    ciudad_A->coneccionCiudad[j]  =ciudad_A->coneccionCiudad[j + 1];
+                }
+                ciudad_A->coneccionCiudad.pop_back();
+                conexionEncontrada = true;
+                cout << "Conexion Eliminada entre " << ciudadA << " y " << ciudadB <<endl;
+                break;
+            }
+        }
+        if(!conexionEncontrada){
+            cout << "No existe conexion entre " << ciudadA << " y " << ciudadB << endl;
+        }
+    }else{
+        cout << "Una de las ciudades no existe o no se encontro, no se pudo agregar conexion." << endl;
+    }
+}
                                     //funcion cargar archivos ciudades y guardianes(de manera jerarquica).
 
 vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
@@ -85,12 +146,9 @@ vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
 
     while (file.getline(line,sizeof(line))) {
         CiudadGrafo ciudad;
-
-        char* nombre_ciudad = strtok(line, ",");
+        char*  nombre_ciudad = strtok(line, ",");
         strcpy(ciudad.nombre,nombre_ciudad);
-
         bool ciudadExistente = false;
-
         for(auto& c : ciudades){
             if(strcmp(c.nombre, ciudad.nombre) == 0){
                 ciudadExistente = true;
@@ -117,6 +175,7 @@ vector<CiudadGrafo> cargarCiudades(char archivoCiudades[]) {
             ciudades.push_back(ciudad);
         }
     }
+
     return ciudades;
 }
 
@@ -293,18 +352,16 @@ void ver_lista_candidatos(NodeRanking*& rankingRoot, vector<string>& guardianesA
     inorder(rankingRoot,guardianesActuales);
 }
 
-void buscarCiudadGuardian(NodoJerarquico& nodo, char* nombreGuardian, CiudadGrafo& ciudadGuardian){
-    if(strcmp(nodo.guardian.nombre,nombreGuardian) == 0){
-        strcpy(ciudadGuardian.nombre, nodo.guardian.ciudad);
+/*void buscarGuardianesEnCiudad(NodoJerarquico& nodo, char* nombreGuardian, char* ciudadGuardian){
+    if(strcmp(nodo.guardian.ciudad,ciudadGuardian) == 0){
+        cout << "Guardian en la ciudad:" << nombreGuardian;
         return;
     }
     for(auto& aprendiz : nodo.aprendices){
-        buscarCiudadGuardian(aprendiz,nombreGuardian,ciudadGuardian);
-        if(ciudadGuardian.nombre[0] != '\0'){
-            return;
-        }
+        buscarGuardianesEnCiudad(aprendiz,nombreGuardian,ciudadGuardian);
+
     }
-}
+}*/
 
 Guardian* buscarGuardianNumero(NodeRanking* root, int& contador, int& eleccion){
 
@@ -334,64 +391,7 @@ int pelea(Guardian& elegido, Guardian& contrincante){
     }
 }
 
-CiudadGrafo* buscarCiudad(vector<CiudadGrafo>& ciudades, string& nombreCiudad){
-    for(CiudadGrafo& ciudad: ciudades){
-        if(ciudad.nombre == nombreCiudad){
-            return &ciudad;
-        }
-    }
-    return nullptr;
-}
 
-bool existeConexion(CiudadGrafo& ciudad, string& otraCiudad){
-    for(string& conexion : ciudad.coneccionCiudad){
-        if(conexion == otraCiudad){
-            return true;
-        }
-    }
-    return false;
-}
-
-void agregarConexion(vector<CiudadGrafo>& ciudades, string& ciudadA, string& ciudadB){
-
-    CiudadGrafo* ciudad_A = buscarCiudad(ciudades,ciudadA);
-    CiudadGrafo* ciudad_B = buscarCiudad(ciudades,ciudadB);
-
-    if(ciudad_A && ciudad_B){
-        if(!existeConexion(*ciudad_A,ciudadB)){
-            ciudad_A->coneccionCiudad.push_back(ciudadB);
-            cout << "Conexion agregada entre " << ciudadA << " y " << ciudadB << endl;
-        }else{
-            cout << "Ya existe conexion entre " << ciudadA << " y " << ciudadB << endl;
-        }
-    }else{
-        cout << "Una de las ciudades no existe o no se encontro, no se pudo agregar conexion." << endl;
-    }
-}
-
-void eliminarConexion(vector<CiudadGrafo>& ciudades, string& ciudadA, string& ciudadB){
-    CiudadGrafo* ciudad_A = buscarCiudad(ciudades,ciudadA);
-    CiudadGrafo* ciudad_B = buscarCiudad(ciudades,ciudadB);
-    if(ciudad_A && ciudad_B){
-        bool conexionEncontrada = false;
-        for(int i = 0; i< ciudad_A->coneccionCiudad.size(); i++){
-            if(ciudad_A->coneccionCiudad[i] == ciudadB){
-                for(int j = i; j < ciudad_A->coneccionCiudad.size() - 1; j++){
-                    ciudad_A->coneccionCiudad[j]  =ciudad_A->coneccionCiudad[j + 1];
-                }
-                ciudad_A->coneccionCiudad.pop_back();
-                conexionEncontrada = true;
-                cout << "Conexion Eliminada entre " << ciudadA << " y " << ciudadB <<endl;
-                break;
-            }
-        }
-        if(!conexionEncontrada){
-            cout << "No existe conexion entre " << ciudadA << " y " << ciudadB << endl;
-        }
-    }else{
-        cout << "Una de las ciudades no existe o no se encontro, no se pudo agregar conexion." << endl;
-    }
-}
 
 /*
 
@@ -460,13 +460,13 @@ int main() {
     Guardian* eleccionVerDatos = nullptr;
 
     int op2 , op3 ,op4 , op5;
-
+        //carga.
     vector<CiudadGrafo> ciudades = cargarCiudades(ciudadestexto);
     vector<NodoJerarquico> guardianes = cargarGuardianes(guardianestexto);
     vector<string> guardianesActuales = {"Forseti","Magni","Skadi"};
-
-
+        //ranking.
     cargarGuardianesArboles(guardianes,rankingRoot);
+
     int opcion;
     do{
         cout << "Menu De The Guardians Battle" << endl;
@@ -571,7 +571,6 @@ int main() {
 
                 break;
             case 4:
-                if(guardianElegido == nullptr){
                     contador = 1;
                     contador2 = 0;
                     cout << "Seleccione un guardian para la batalla:" << endl;
@@ -582,16 +581,12 @@ int main() {
 
                     if(guardianElegido != nullptr){
                         cout << "Elegiste al guardian: " << guardianElegido->nombre <<" Para la Batalla." << endl;
-
+                        cout << "De la ciudad: " << guardianElegido->ciudad <<endl;
                         //falta seguir impleamentando logica para batalla.
-
 
                     }else{
                         cout << "Seleccion Invalida, reintente." << endl;
                     }
-                }else{
-                    cout << "Ya elegiste un guardian, deseas elegir otro distinto?" << endl;
-                }
 
                 break;
             case 5:
