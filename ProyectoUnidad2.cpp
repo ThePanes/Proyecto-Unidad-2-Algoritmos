@@ -80,7 +80,6 @@ void cargarGuardianesArboles(vector<NodoJerarquico>&jerarquia, NodeRanking*& ran
 
 CiudadGrafo* buscarCiudad(vector<CiudadGrafo>& ciudades, string& nombreCiudad){
     for(auto& ciudad: ciudades){
-        //string name(ciudad);
         if(ciudad.nombre == nombreCiudad){
             return &ciudad;
         }
@@ -270,7 +269,7 @@ vector<NodoJerarquico> cargarGuardianes(char archivoGuardianes[]) {
     return jerarquia;
 }
                     //termino funciones de carga de ciudades y guardianes.
-/*
+
 void intercambiarGuardianes(Guardian& a, Guardian& b){
 
     Guardian temp = a;
@@ -285,7 +284,7 @@ void intercambiarGuardianes(Guardian& a, Guardian& b){
     strcpy(b.maestro,temp.maestro);
     strcpy(b.ciudad,temp.ciudad);
 }
-*/
+
 void imprimirGrafoCiudades(vector<CiudadGrafo> &ciudades) {
     int contador = 1;
     cout << "Grafo de ciudades:" << endl;
@@ -317,7 +316,7 @@ void imprimirJerarquia(NodoJerarquico& nodo, int nivel = 0) {
         imprimirJerarquia(aprendiz, nivel + 1);
     }
 }
-/*NodeRanking* buscarGuardianRanking(NodeRanking* root, Guardian& guardian){
+NodeRanking* buscarGuardianRanking(NodeRanking* root, Guardian& guardian){
     if(root == nullptr || strcmp(root->guardian.nombre, guardian.nombre) == 0){
         return root;
     }
@@ -328,7 +327,6 @@ void imprimirJerarquia(NodoJerarquico& nodo, int nivel = 0) {
         return buscarGuardianRanking(root->right,guardian);
     }
 }
-*/
             //imprimiendo arbol de ranking con el metodo inorder, filtrando solo por aquellos guardianes que cumplan como candidatos(guardianes con nivel > 90)
 void inorder(NodeRanking* root, vector<string>& guardianesActuales) {
     if (root == nullptr) {
@@ -370,7 +368,7 @@ void ver_lista_candidatos(NodeRanking*& rankingRoot, vector<string>& guardianesA
     inorder(rankingRoot,guardianesActuales);
 }
 
-/*void buscarGuardianesEnCiudad(NodoJerarquico& nodo, char* nombreGuardian, char* ciudadGuardian){
+void buscarGuardianesEnCiudad(NodoJerarquico& nodo, char* nombreGuardian, char* ciudadGuardian){
     if(strcmp(nodo.guardian.ciudad,ciudadGuardian) == 0){
         cout << "Guardian en la ciudad:" << nombreGuardian;
         return;
@@ -379,7 +377,7 @@ void ver_lista_candidatos(NodeRanking*& rankingRoot, vector<string>& guardianesA
         buscarGuardianesEnCiudad(aprendiz,nombreGuardian,ciudadGuardian);
 
     }
-}*/
+}
 
 Guardian* buscarGuardianNumero(NodeRanking* root, int& contador, int& eleccion){
 
@@ -409,60 +407,6 @@ int pelea(Guardian& elegido, Guardian& contrincante){
     }
 }
 
-
-
-/*
-
-NodeRanking* BFS(NodeRanking* root, int value) {
-    queue<NodeRanking*> q;
-    q.push(root);
-    while (!q.empty()) {
-        NodeRanking* current = q.front();
-        q.pop();
-        if (current->data == value) {
-            return current;
-        }
-        if (current->left != NULL) {
-            q.push(current->left);
-        }
-        if (current->right != NULL) {
-            q.push(current->right);
-        }
-    }
-    return NULL;
-}
-*/
-
-/*NodeRanking* deleteNode(NodeRanking* root, int key) {
-    if (root == NULL) {
-        return root;
-    }
-    if (key < root->puntos) {
-        root->left = deleteNode(root->left, key);
-    }
-    else if (key > root->puntos) {
-        root->right = deleteNode(root->right, key);
-    }
-    else {
-        if (root->left == NULL) {
-            NodeRanking* temp = root->right;
-            delete root;
-            return temp;
-        }
-        else if (root->right == NULL) {
-            NodeRanking* temp = root->left;
-            delete root;
-            return temp;
-        }
-        NodeRanking* temp = root->right;
-        while (temp->left != NULL) {
-            temp = temp->left;
-        }
-        root->puntos = temp->puntos;
-        root->right = deleteNode(root->right, temp->puntos);
-    }
-    return root;
-}*/
 
 int main() {
 

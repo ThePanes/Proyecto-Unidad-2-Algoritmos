@@ -1,0 +1,15 @@
+Instrucciones para ejecutar y/o compilar el programa:
+
+1. Debe contar con el programa DEV C++ 4.9.9.2 o similar, o Codeblocks en su ultima version de ser posible.
+2. Clonar o descargar el repositorio de github en su ordenador y abrir la carpeta contenedora de los archivos.
+3. Abrir el archivo proyectoUnidad2.cpp
+4. Para poder compilar el archivo, primero debemos asegurar de que en la misma carpeta de este proyecto este el archivo "cities.conf" y "guardians.conf" que debe contener tipos de dato de este tipo: 
+-En caso del archivo "guardians.conf : "Freya,100,None,Tesla Capital" para poder realizar la correcta lectura.
+-En caso del archivo "cities.conf" : "Silverstone City, Valley City".
+
+5. Abrir el archivo proyectoUnidad2.cpp con su interfaz de trabajo de preferencia, en el caso personal, utilice CodeBlocks.
+6. Sí se aseguró de que el archivo "guardians.conf" y "cities.conf" está dentro de la misma carpeta que el archivo proyectoUnidad2.cpp, entonces puede compilar con precaución.
+7. Sí desea introducir un archivo personalizado en el formato .conf, debe ingresar al codigo, dirijirse a las variables ciudadestexto y guardianestexto y reescribir los nombres por los nombres de los nuevos archivos a cargar, considerando el formato de estos.
+8. Para que funcione correctamente, debe ingresar los nombres de los guardianes que son guardianes del reino y no pueden ser candidatos por
+ser ya guardianes del reino dentro del codigo, en la parte de guardianesActuales, para no tener problemas.
+9. Compilar y ejecutar el programa con su compilador de preferencia, no necesita pasarle parámetros extra para ejecutar, solo ejecutar asegurándose de que todos los archivos estén en la misma carpeta.
